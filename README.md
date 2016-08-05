@@ -1,5 +1,5 @@
 # infrared_video
-sssssssssssssssss
+place both the codes in same directory
 
 
 
