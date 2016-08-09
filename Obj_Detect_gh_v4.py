@@ -27,7 +27,7 @@ def denoise(frame):
 camera = cv2.VideoCapture('GLORY MOB 3-08-2015.mp4')
 camera.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT,720)
 camera.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT,1280)
-camera.set(0,100000)
+camera.set(0,400000)
 (_, frame2) = camera.read()
 #frame2 = imutils.resize(frame2, width=1280,height=720)
 height,width = frame2.shape[:2]
@@ -37,19 +37,22 @@ out = cv2.VideoWriter('output.avi',fourcc,30, (1280,720),1)
 
 gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
 gray2 = cv2.GaussianBlur(gray2, (21, 21), 0)
-
+file_r=open("frame_points.txt","w")
 
 # initialize the first frame in the video stream
 firstFrame = gray2
+cv2.bitwise_not(gray2,firstFrame)
+#firstFrame = gray2
 # loop over the frames of the video
 flag=0
 f_no =0
+detect_flag=0
 while True:
                 # grab the current frame and initialize the occupied/unoccupied
                 # text
                 (grabbed, frame) = camera.read()
                 text = "Unoccupied"
-
+                cv2.bitwise_not(frame,frame)
                 # if the frame could not be grabbed, then we have reached the end
                 # of the video
                 if not grabbed:
@@ -89,10 +92,14 @@ while True:
                                 # and update the text
                                 (x, y, w, h) = cv2.boundingRect(c)
                                 # checking if the point is right side of the line
-                                if ((x + 0.5*w - points[0][0])*(points[0][3]-points[0][1]) - (y + 0.5*h -points[0][1])*(points[0][2]-points[0][0])) >= 0  :
+                                if ((((x + 0.5*w - points[0][0])*(points[0][3]-points[0][1]) - (y + 0.5*h -points[0][1])*(points[0][2]-points[0][0])) >= 0))  :
                                 #if first frame then do not draw box, instead write coordinates in a text file
                                     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                                     text = "Occupied"
+                                    #writing center point in a text file
+                                    file_r.write(str(int(x + 0.5*w))+","+(str(int(y + 0.5*h)))+"|")
+                                    #cv2.circle(frame, (int(x + 0.5*w),int(y + 0.5*h)), 1, (0,0,255),1)
+                                    file_r.write(str(f_no)+":")
                                     count += 1
                                 # draw the text and timestamp on the frame
                 cv2.putText(frame, "Room Status: {}".format(text), (10, 20),
@@ -109,16 +116,11 @@ while True:
                 key = cv2.waitKey(1) & 0xFF
                 f_no += 1
 
-                # if the `q` key is pressed, break from the loop
+                #if the `q` key is pressed, break from the loop
                 if key == ord("q"):
                                 break
 
 # cleanup the camera and close any open windows
+file_r.close()
 camera.release()
-out.release()
 cv2.destroyAllWindows()
-
-        
-
-
-
